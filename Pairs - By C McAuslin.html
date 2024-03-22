@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pairs</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-image: url('background.jpg'); /* Background image URL */
+        background-size: cover; /* Cover the entire viewport */
+        background-position: center; /* Center the background image */
+    }
+    h1 {
+        color: white; /* Title color */
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* Add a shadow effect to the title */
+        position: absolute; /* Position the title absolutely */
+        top: 20px; /* Set the top position */
+        left: 50%; /* Center the title horizontally */
+        transform: translateX(-50%); /* Adjust the horizontal position */
+        z-index: 1; /* Ensure the title appears above other elements */
+    }
+    #attempts {
+        background-color: #D27D2D; /* Blue background color */
+        color: white; /* Text color */
+        padding: 5px 10px; /* Add padding */
+        border-radius: 5px; /* Add border radius */
+    }
+    .board {
+        text-align: center;
+        display: flex; /* Ensure cards are displayed in a row */
+        flex-wrap: wrap; /* Allow cards to wrap to the next row */
+        justify-content: center; /* Center cards horizontally */
+    }
+    .card {
+        width: 100px;
+        height: 150px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        margin: 10px;
+        display: inline-block;
+        cursor: pointer;
+        text-align: center;
+        transition: transform 0.3s;
+        position: relative;
+    }
+    .card img {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    .card .back {
+        display: block;
+    }
+    .card.flipped .back {
+        display: none;
+    }
+    #reset {
+        margin-top: 20px;
+        background-color: #2d82d2; /* Green background color */
+        color: white; /* Text color */
+        padding: 10px 20px; /* Add padding */
+        font-size: 16px; /* Increase font size */
+        border: none; /* Remove border */
+        border-radius: 5px; /* Add border radius */
+        cursor: pointer;
+        transition: background-color 0.3s; /* Add transition effect */
+    }
+    #reset:hover {
+        background-color: #2d82d2; /* Darker green on hover */
+    }
+    .controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1; /* Ensure the controls appear above other elements */
+    }
+</style>
+</head>
+<body>
+<h1>Pairs!</h1>
+<div class="controls">
+    <div id="attempts">Attempts Left: <span id="attemptCount">10</span></div>
+    <div class="board"></div>
+    <button id="reset">Reset</button>
+</div>
+
+<script>
+    const images = [
+        'Card1.png',
+        'Card2.png',
+        'Card3.png',
+        'Card4.png'
+    ];
+    let cards = [];
+    let canClick = true; // Flag to track if cards can be clicked
+    let attemptsLeft = 10;
+
+    // Duplicate images to create pairs
+    images.forEach(image => {
+        cards.push({ image: image, matched: false });
+        cards.push({ image: image, matched: false });
+    });
+
+    // Shuffle the cards
+    shuffle(cards);
+
+    const board = document.querySelector('.board');
+
+    cards.slice(0, 8).forEach(card => { // Only select first 8 cards
+        const div = document.createElement('div');
+        div.classList.add('card');
+        const imgFront = document.createElement('img');
+        imgFront.src = 'images/' + card.image; // Assuming images are stored in an 'images' folder
+        imgFront.alt = 'Card';
+        div.appendChild(imgFront);
+        const imgBack = document.createElement('img');
+        imgBack.src = 'images/back.png'; // Image for the back of the card
+        imgBack.alt = 'Back of Card';
+        imgBack.classList.add('back');
+        div.appendChild(imgBack);
+        board.appendChild(div);
+
+        div.addEventListener('click', () => {
+            if (!div.classList.contains('flipped') && canClick && attemptsLeft > 0) {
+                flipCard(div);
+            }
+        });
+    });
+
+    let firstCard = null;
+    let secondCard = null;
+
+    function flipCard(card) {
+        card.classList.add('flipped');
+
+        if (firstCard === null) {
+            firstCard = card;
+        } else if (secondCard === null) {
+            secondCard = card;
+            canClick = false; // Disable clicking on other cards
+            attemptsLeft--;
+            document.getElementById('attemptCount').textContent = attemptsLeft;
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        if (firstCard.querySelector('img').src === secondCard.querySelector('img').src) {
+            // Match found
+            firstCard.dataset.matched = true;
+            secondCard.dataset.matched = true;
+            firstCard = null;
+            secondCard = null;
+            canClick = true; // Re-enable clicking on cards
+            if (allCardsMatched()) {
+                document.getElementById('attempts').textContent = 'YOU WIN!';
+            }
+        } else {
+            // No match
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                firstCard = null;
+                secondCard = null;
+                canClick = true; // Re-enable clicking on cards
+            }, 1000);
+        }
+    }
+
+
+    function allCardsMatched() {
+        return cards.every(card => card.matched);
+    }
+
+    document.getElementById('reset').addEventListener('click', resetGame);
+
+    function resetGame() {
+        location.reload();
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+</script>
+</body>
+</html>
